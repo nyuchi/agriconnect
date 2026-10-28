@@ -17,25 +17,25 @@ from agriconnect.source import build_query
 
 
 def ds(**over) -> Dataset:
-    base = dict(
-        id="rain",
-        title="Rain",
-        domain="weather",
-        database="weather",
-        table="rainfall",
-        licence="CC-BY-4.0",
-        open=True,
-        enabled=True,
-        approved_by="owner",
-        min_cell_size=10,
-        columns=(
+    base = {
+        "id": "rain",
+        "title": "Rain",
+        "domain": "weather",
+        "database": "weather",
+        "table": "rainfall",
+        "licence": "CC-BY-4.0",
+        "open": True,
+        "enabled": True,
+        "approved_by": "owner",
+        "min_cell_size": 10,
+        "columns": (
             Column("district", "dimension"),
             Column("month", "dimension"),
             Column("rainfall_mm", "measure"),
             Column("station_id", "identifier"),
             Column("farmer_phone", "personal"),
         ),
-    )
+    }
     base.update(over)
     return Dataset(**base)
 

@@ -24,7 +24,7 @@ datasets:
     approved_by: null
     min_cell_size: 10
     columns:
-      - { name: region_code, kind: dimension } # ISO 3166-2, for example ZW-HA
-      - { name: observed_date, kind: dimension } # ISO 8601 date, in the place's zone
-      - { name: precipitation_amount, kind: measure } # CF standard name, unit kg m-2
-      - { name: wigos_station_id, kind: identifier } # never served
+      - {name: region_code, kind: dimension}  # ISO 3166-2, for example ZW-HA
+      - {name: observed_date, kind: dimension}  # ISO 8601 date, in the place's zone
+      - {name: precipitation_amount, kind: measure}  # CF standard name, unit kg m-2
+      - {name: wigos_station_id, kind: identifier}  # never served

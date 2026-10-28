@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from agriconnect.app import create_app
 from agriconnect.catalogue import load
-from agriconnect.policy import Column, Dataset
+from agriconnect.policy import Dataset
 
 from .test_policy import ds
 
