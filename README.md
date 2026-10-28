@@ -48,13 +48,15 @@ the catalogue.
 
 ## Layout
 
-| Path                      | What it is                                                           |
-| ------------------------- | -------------------------------------------------------------------- |
-| `catalogue/datasets.yaml` | The datasets that may be served. One example, switched off.          |
-| `src/agriconnect/policy.py` | The rule above.                                                    |
-| `src/agriconnect/source.py` | One aggregate query, and the read-only Doris reader.               |
-| `src/agriconnect/app.py`  | The API: `/health`, `/v1/datasets`, `/v1/datasets/{id}/series`.      |
-| `Dockerfile`, `fly.toml`  | The Fly app `nyuchi-agriconnect`, region `jnb`, no public address.   |
+- `catalogue/datasets.yaml`: the datasets that may be served. One example,
+  switched off.
+- `src/agriconnect/policy.py`: the rule above.
+- `src/agriconnect/source.py`: one aggregate query, and the read-only Doris
+  reader.
+- `src/agriconnect/app.py`: the API: `/health`, `/v1/datasets`,
+  `/v1/datasets/{id}/series`.
+- `Dockerfile`, `fly.toml`: the Fly app `nyuchi-agriconnect`, region `jnb`, no
+  public address.
 
 ## Run the tests
 
