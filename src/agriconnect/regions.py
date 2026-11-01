@@ -23,6 +23,7 @@ CODES = ("I", "IIa", "IIb", "III", "IV", "V")
 #: Government of Zimbabwe AEZ revision (ZINGSA, Manatsa et al.). Vintage is the year
 #: of the map itself, so a later re-issue of the same map is a different vintage.
 CLASSIFICATIONS = ("vincent-thomas-1960", "agez-revision-2020")
+CLASSIFICATION_VINTAGE = {"vincent-thomas-1960": 1960, "agez-revision-2020": 2020}
 REQUIRED_PROPERTIES = (
     "code",
     "label",
@@ -33,6 +34,11 @@ REQUIRED_PROPERTIES = (
     "licence",
     "attribution",
     "retrievedAt",
+)
+#: Licences under which a polygon may be redistributed. A load with any other value is
+#: refused: "unknown" or "all rights reserved" must never reach the shared database.
+REDISTRIBUTABLE_LICENCES = frozenset(
+    {"CC0-1.0", "CC-BY-4.0", "CC-BY-IGO", "ODbL-1.0", "public-domain"}
 )
 #: Overlap beyond this fraction of the smaller region's area is a defect. Digitised
 #: boundaries share edges, so a sliver is normal; a large overlap is not.
@@ -56,61 +62,112 @@ class Match:
     attribution: str
 
 
-def _ring_ok(ring: list) -> str | None:
-    if len(ring) < 4:
+def _ring_ok(ring: Any) -> str | None:
+    if not isinstance(ring, list) or len(ring) < 4:
         return "a ring needs at least 4 positions"
     if ring[0] != ring[-1]:
         return "a ring must be closed"
     for p in ring:
-        if len(p) < 2 or not (-180 <= p[0] <= 180 and -90 <= p[1] <= 90):
+        if (
+            not isinstance(p, (list, tuple))
+            or len(p) < 2
+            or not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in p[:2])
+            or not (-180 <= p[0] <= 180 and -90 <= p[1] <= 90)
+        ):
             return f"position out of range or swapped (lon, lat expected): {p}"
     return None
 
 
+def _signed_area(ring: list) -> float:
+    return sum(
+        (ring[i][0] * ring[i + 1][1] - ring[i + 1][0] * ring[i][1]) for i in range(len(ring) - 1)
+    ) / 2
+
+
 def _polygons(geometry: dict) -> list[list[list[list[float]]]]:
     t = geometry.get("type")
+    coords = geometry.get("coordinates")
     if t == "Polygon":
-        return [geometry["coordinates"]]
-    if t == "MultiPolygon":
-        return list(geometry["coordinates"])
-    raise RegionError(f"geometry must be Polygon or MultiPolygon, not {t!r}")
+        polys = [coords]
+    elif t == "MultiPolygon":
+        polys = list(coords or [])
+    else:
+        raise RegionError(f"geometry must be Polygon or MultiPolygon, not {t!r}")
+    if not polys or any(not isinstance(p, list) or not p for p in polys):
+        raise RegionError("a polygon needs at least an exterior ring")
+    return polys
 
 
 def check_collection(fc: dict[str, Any]) -> list[str]:
-    """Structural problems, without any geometry library. Empty means well formed."""
+    """Structural problems, without any geometry library. Empty means well formed and
+    safe to look up in."""
     out: list[str] = []
-    if fc.get("type") != "FeatureCollection":
+    if not isinstance(fc, dict) or fc.get("type") != "FeatureCollection":
         return ["not a FeatureCollection"]
-    seen: set[tuple[str, int, str]] = set()
-    for i, f in enumerate(fc.get("features", [])):
+    features = fc.get("features")
+    if not isinstance(features, list) or not features:
+        return ["a FeatureCollection with no features"]
+    seen: set[tuple[str, str, str]] = set()
+    for i, f in enumerate(features):
         where = f"feature {i}"
-        props = f.get("properties") or {}
+        if not isinstance(f, dict):
+            out.append(f"{where}: not an object")
+            continue
+        props = f.get("properties")
+        if not isinstance(props, dict):
+            out.append(f"{where}: properties must be an object")
+            props = {}
         for k in REQUIRED_PROPERTIES:
             if props.get(k) in (None, ""):
                 out.append(f"{where}: missing property {k}")
         if props.get("code") not in CODES:
             out.append(f"{where}: code {props.get('code')!r} is not one of {CODES}")
-        if props.get("classification") not in CLASSIFICATIONS:
-            out.append(f"{where}: classification {props.get('classification')!r} is unknown")
-        key = (str(props.get("classification")), int(props.get("vintage") or 0), str(props.get("code")))
+        cls = props.get("classification")
+        if cls not in CLASSIFICATIONS:
+            out.append(f"{where}: classification {cls!r} is unknown")
+        vintage = props.get("vintage")
+        if not isinstance(vintage, int) or isinstance(vintage, bool):
+            out.append(f"{where}: vintage must be an integer year, not {vintage!r}")
+        elif cls in CLASSIFICATION_VINTAGE and vintage != CLASSIFICATION_VINTAGE[cls]:
+            out.append(f"{where}: {cls} has vintage {CLASSIFICATION_VINTAGE[cls]}, not {vintage}")
+        if props.get("licence") and props["licence"] not in REDISTRIBUTABLE_LICENCES:
+            out.append(f"{where}: licence {props['licence']!r} is not a known redistributable licence")
+        key = (str(cls), str(vintage), str(props.get("code")))
         if key in seen:
             out.append(f"{where}: duplicate {key}")
         seen.add(key)
         try:
             for poly in _polygons(f.get("geometry") or {}):
-                for ring in poly:
+                for r, ring in enumerate(poly):
                     bad = _ring_ok(ring)
                     if bad:
                         out.append(f"{where}: {bad}")
-        except RegionError as e:
+                    elif r == 0 and _signed_area(ring) < 0:
+                        out.append(f"{where}: exterior ring is clockwise (RFC 7946 needs counter-clockwise)")
+                    elif r > 0 and _signed_area(ring) > 0:
+                        out.append(f"{where}: a hole is counter-clockwise (RFC 7946 needs clockwise)")
+        except (RegionError, TypeError, AttributeError) as e:
             out.append(f"{where}: {e}")
     return out
 
 
+def _on_segment(x: float, y: float, a: list, b: list) -> bool:
+    cross = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])
+    if abs(cross) > 1e-12:
+        return False
+    return min(a[0], b[0]) - 1e-12 <= x <= max(a[0], b[0]) + 1e-12 and (
+        min(a[1], b[1]) - 1e-12 <= y <= max(a[1], b[1]) + 1e-12
+    )
+
+
 def _point_in_ring(x: float, y: float, ring: list) -> bool:
+    """Ray casting, boundary inclusive: a point on an edge is inside, so a point on a
+    shared edge matches both neighbours and the caller sees the ambiguity."""
     inside = False
     j = len(ring) - 1
     for i in range(len(ring)):
+        if _on_segment(x, y, ring[j], ring[i]):
+            return True
         xi, yi = ring[i][0], ring[i][1]
         xj, yj = ring[j][0], ring[j][1]
         if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi) + xi:
@@ -123,7 +180,10 @@ def contains(geometry: dict, lon: float, lat: float) -> bool:
     """Point in Polygon/MultiPolygon: inside the outer ring and not inside a hole."""
     for poly in _polygons(geometry):
         if _point_in_ring(lon, lat, poly[0]) and not any(
-            _point_in_ring(lon, lat, h) for h in poly[1:]
+            _point_in_ring(lon, lat, h) and not any(
+                _on_segment(lon, lat, h[k], h[k + 1]) for k in range(len(h) - 1)
+            )
+            for h in poly[1:]
         ):
             return True
     return False
@@ -179,7 +239,15 @@ def verify(
     from shapely.validation import explain_validity
 
     problems = check_collection(fc)
-    report: dict[str, Any] = {"features": len(fc.get("features", [])), "by_classification": {}}
+    report: dict[str, Any] = {
+        "features": len(fc.get("features", [])) if isinstance(fc, dict) else 0,
+        "by_classification": {},
+    }
+    if problems:
+        # Structural problems make geometry checks meaningless (and unsafe to run).
+        report["problems"] = problems
+        report["ok"] = False
+        return report
     groups: dict[tuple[str, int], list[tuple[str, Any]]] = {}
     for f in fc.get("features", []):
         p = f["properties"]

@@ -70,11 +70,12 @@ def main(argv: list[str] | None = None) -> int:
     from pymongo import GEOSPHERE, MongoClient, ReplaceOne
 
     col = MongoClient(uri, serverSelectionTimeoutMS=10000)[DATABASE][COLLECTION]
+    # Documents carry no approver: an idempotent re-run must change nothing. The approval
+    # is recorded in the PR/issue and in this run's output, not in the data.
+    res = col.bulk_write([ReplaceOne({"_id": d["_id"]}, d, upsert=True) for d in docs])
     col.create_index([("geometry", GEOSPHERE)], name="geometry_2dsphere")
-    col.create_index([("properties.classification", 1), ("properties.vintage", 1), ("properties.code", 1)],
-                     name="classification_vintage_code", unique=True)
-    res = col.bulk_write([ReplaceOne({"_id": d["_id"]}, {**d, "approvedBy": args.approved_by}, upsert=True) for d in docs])
-    print(f"APPLIED: upserted {res.upserted_count}, modified {res.modified_count}, matched {res.matched_count}.")
+    print(f"APPLIED (approved by {args.approved_by}): upserted {res.upserted_count}, "
+          f"modified {res.modified_count}, matched {res.matched_count}.")
     return 0
 
 

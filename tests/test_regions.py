@@ -86,11 +86,12 @@ def test_both_classifications_stay_distinguishable():
 
 def test_a_hole_is_not_inside_and_a_shared_edge_is_reported_twice():
     holed = fc(feat("I", 0, 10))
-    holed["features"][0]["geometry"]["coordinates"].append([[4, 4], [6, 4], [6, 6], [4, 6], [4, 4]])
+    holed["features"][0]["geometry"]["coordinates"].append([[4, 4], [4, 6], [6, 6], [6, 4], [4, 4]])
     assert regions.lookup(holed, 5, 5) == []
     assert len(regions.lookup(holed, 1, 1)) == 1
     two = fc(feat("I", 0, 5), feat("III", 5, 10))
-    assert len(regions.lookup(two, 5.0, 5.0)) in (1, 2)  # edge: ray casting picks a side, never errors
+    assert sorted(m.code for m in regions.lookup(two, 5.0, 5.0)) == ["I", "III"]  # shared edge: both
+    assert [m.code for m in regions.lookup(two, 0.0, 0.0)] == ["I"]  # country border counts as inside
 
 
 def test_lon_lat_order_is_enforced():
@@ -170,3 +171,78 @@ def test_loader_refuses_bad_data_and_an_unchecked_coverage(tmp_path):
     assert r.returncode == 2 and "problems" in r.stderr
     r = run_loader(tmp_path, country=False)
     assert r.returncode == 2 and "coverage" in r.stderr
+
+
+def test_malformed_input_is_reported_not_raised():
+    for bad in (
+        fc({"type": "Feature", "properties": None, "geometry": None}),
+        fc({"type": "Feature", "properties": {"vintage": "1960s"}, "geometry": {"type": "Polygon", "coordinates": []}}),
+        {"type": "FeatureCollection", "features": []},
+        {"type": "FeatureCollection"},
+        "nope",
+    ):
+        assert regions.check_collection(bad), bad
+        r = regions.verify(bad)
+        assert r["ok"] is False and r["problems"]
+
+
+def test_winding_vintage_and_licence_are_checked():
+    cw = good()
+    cw["features"][0]["geometry"]["coordinates"][0].reverse()
+    assert any("clockwise" in p for p in regions.check_collection(cw))
+    wrong = good()
+    wrong["features"][0]["properties"]["classification"] = "agez-revision-2020"
+    assert any("vintage" in p for p in regions.check_collection(wrong))
+    lic = good()
+    lic["features"][0]["properties"]["licence"] = "all rights reserved"
+    assert any("licence" in p for p in regions.check_collection(lic))
+
+
+def test_province_lookup_is_forgiving_and_explains_unknowns():
+    assert places_join.province_pcode(" zw-mi ") == "ZW17"
+    assert places_join.province_iso("midlands") == "ZW-MI"
+    assert "provinceNote" in places_join.resolve(5, 5, good())
+    prov = fc(feat("I", 0, 1))
+    prov["features"][0]["properties"] = {"isoCode": "ZW-MI", "name": "Midlands"}
+    assert "outside" in places_join.resolve(5, 5, good(), prov)["provinceNote"]
+
+
+def test_apply_path_writes_only_the_collection_and_stores_no_approver(tmp_path, monkeypatch):
+    import importlib.util
+    import types
+
+    calls = {}
+
+    class Col:
+        def bulk_write(self, ops):
+            calls["ops"] = ops
+            return types.SimpleNamespace(upserted_count=len(ops), modified_count=0, matched_count=0)
+
+        def create_index(self, keys, name=None):
+            calls["index"] = (keys, name)
+
+    class Client:
+        def __init__(self, uri, **kw):
+            calls["uri"] = uri
+
+        def __getitem__(self, db):
+            calls["db"] = db
+            return {"naturalRegions": Col()}
+
+    class ReplaceOne:
+        def __init__(self, flt, doc, upsert=False):
+            self.flt, self.doc, self.upsert = flt, doc, upsert
+
+    fake = types.SimpleNamespace(GEOSPHERE="2dsphere", MongoClient=Client, ReplaceOne=ReplaceOne)
+    monkeypatch.setitem(sys.modules, "pymongo", fake)
+    monkeypatch.setenv("AGRICONNECT_MONGO_URI", "mongodb://example.invalid/")
+    spec = importlib.util.spec_from_file_location("loader", ROOT / "scripts" / "load_natural_regions.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    g, c = tmp_path / "g.json", tmp_path / "c.json"
+    g.write_text(json.dumps(good()))
+    c.write_text(json.dumps(COUNTRY))
+    assert mod.main(["--geojson", str(g), "--country", str(c), "--apply", "--approved-by", "Owner"]) == 0
+    assert calls["db"] == "agriculture" and calls["index"] == ([("geometry", "2dsphere")], "geometry_2dsphere")
+    assert len(calls["ops"]) == 3
+    assert all(op.upsert and "approvedBy" not in op.doc for op in calls["ops"])

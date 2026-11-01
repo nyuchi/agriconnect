@@ -39,15 +39,17 @@ PCODE_LICENCE = "CC-BY-IGO"
 
 def province_pcode(iso_or_name: str) -> str | None:
     """P-code for an ISO 3166-2 code (`ZW-MI`) or a province name (`Midlands`)."""
-    if iso_or_name in _BY_ISO:
-        return _BY_ISO[iso_or_name][0]
-    hit = _BY_NAME.get(iso_or_name.strip().lower())
+    key = iso_or_name.strip()
+    if key.upper() in _BY_ISO:
+        return _BY_ISO[key.upper()][0]
+    hit = _BY_NAME.get(key.lower())
     return hit[1] if hit else None
 
 
 def province_iso(pcode_or_name: str) -> str | None:
+    key = pcode_or_name.strip().lower()
     for iso, pc, name in PROVINCES:
-        if pcode_or_name in (pc, name):
+        if key in (pc.lower(), name.lower(), iso.lower()):
             return iso
     return None
 
@@ -82,7 +84,9 @@ def resolve(
         out["naturalRegionsNote"] = "no Natural Region polygon contains this point (or none is loaded)"
 
     out["province"] = None
-    if provinces:
+    if not provinces:
+        out["provinceNote"] = "province polygons were not supplied, so the province is unknown"
+    else:
         for f in provinces.get("features", []):
             if regions.contains(f["geometry"], lon, lat):
                 iso = f["properties"].get("isoCode")
@@ -95,6 +99,8 @@ def resolve(
                     "pcodeLicence": PCODE_LICENCE,
                 }
                 break
+        if out["province"] is None:
+            out["provinceNote"] = "no province polygon contains this point (outside Zimbabwe?)"
     out["district"] = None
     out["districtNote"] = (
         "districts are not resolved: no district boundaries are held in places or agriculture "

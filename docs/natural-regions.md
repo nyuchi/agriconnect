@@ -66,8 +66,7 @@ feature carries:
 | `retrievedAt`      | date retrieved                                                               |
 
 Stored in `agriculture.naturalRegions` (one document per feature, `_id` =
-`zw-nr-<classification>-<vintage>-<code>`), with a `2dsphere` index on `geometry` and a unique
-index on `(classification, vintage, code)`. `agriculture` is a data-infra domain (2026-10-28).
+`zw-nr-<classification>-<vintage>-<code>`), with a `2dsphere` index on `geometry`. `agriculture` is a data-infra domain (2026-10-28).
 
 ## Loader and verification
 
@@ -75,12 +74,15 @@ index on `(classification, vintage, code)`. `agriculture` is a data-infra domain
 
 - **Dry run is the default.** It verifies and prints what it would write; it never opens a
   database connection.
-- `verify` checks: required properties, known codes and classifications, no duplicates, closed rings,
+- `verify` checks: required properties, known codes and classifications, a `vintage` that matches the
+  classification, a licence on the redistributable list, no duplicates, closed rings with RFC 7946
+  winding (exterior counter-clockwise, holes clockwise),
   longitude/latitude in range (catches swapped axes), valid geometry, pairwise overlap within
   0.1% of the smaller region, and at least 99% coverage of Zimbabwe's boundary per
   classification. A load with problems, or without the boundary to check coverage, is refused.
 - `--apply` needs `--approved-by "<owner name>"`, the URI in `AGRICONNECT_MONGO_URI` (never argv),
-  and a clean verification. It upserts by `_id`, so a re-run changes nothing, and it never deletes.
+  and a clean verification. It upserts by `_id`, so a re-run changes nothing (the approver is printed, not stored in the
+  documents), and it never deletes.
 
 Country boundary for the coverage check: the Zimbabwe country document in `places.placesGeo`
 (Natural Earth 10m), exported as GeoJSON.
