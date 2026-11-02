@@ -75,3 +75,32 @@ whole collection; the 21 were Zimbabwe's.
 3. Decide fate of `weather.regions` and the 'city' entries that are streets and shops.
 4. Attach `data-infra`, `nyuchi-servers-api`, `nyuchi-api`, mukoko-weather so the `?` rows and the
    standards register can be checked.
+
+## Update 2026-11-02: decisions relayed from the orchestrating session
+
+1. **Places home: yes.** Natural Regions and the place contract belong to the `places` domain;
+   `agriculture` references them by id. Option B is therefore the working choice (relayed by the
+   orchestrator; the owner's own confirmation in this session is still pending).
+2. **No production write is needed or authorised.** The loader stays dry-run-only in practice.
+3. **Polygon source: open.** Status is "needs the ministry map or a licensed polygon". MSD, the
+   Ministry and others publish no reuse terms (shamwari#149); permission emails are drafted on
+   shamwari#148. Nothing waits on this: the model, loader and verification are specified as code
+   with tests.
+
+## Changes needed in `nyuchi/data-infra` (not attachable from this session; not verified against the repo)
+
+Listed precisely so a data-infra session can apply them. Names are proposals; match the repo's
+existing conventions where they differ.
+
+| Where | Change |
+| --- | --- |
+| `schemas/model` (LinkML) | A `NaturalRegion` class (a `Place` subtype): `code` (enum I, IIa, IIb, III, IV, V), `classification` (enum `vincent-thomas-1960`, `agez-revision-2020`), `vintage` (integer year), `rainfall_band_mm`, `source`, `licence`, `attribution`, `retrievedAt`, `geometry` (GeoJSON Polygon/MultiPolygon, RFC 7946), `containedInPlace` (place id) |
+| `schemas/model` | A `PlaceIdentifier` slot on `Place` (`scheme`, `value`): `iso3166-2`, `ocha-pcode`, `wigos`, `icao`, `iata`, `wikidata`, `geonames`, mapped to schema.org `identifier`/`sameAs` |
+| places schema | `geoType`/`placeType` value `natural-region`; district and ward types; the `places` validator is **not** changed by this repo, and any change needs backup and rollback stated in the issue first |
+| Standards register | Entries for: GeoJSON RFC 7946 (exists?), schema.org `Place`/`GeoShape`, OCHA COD-AB P-codes (CC-BY-IGO), ISO 3166-2, WIGOS station id, Wikidata/GeoNames as `sameAs` |
+| `schemas/domains.yaml` | None: `agriculture` is already listed; Natural Regions go in `places`. `scripts/domains/check_domains.py` needs no exception |
+| Projection | Publish `places` natural-region and admin-area sets to Doris so AgriConnect reads them there, not from a second Mongo copy |
+| Licences register | `CC-BY-IGO` (OCHA, WFP) added if AgriConnect or the commons are to serve them; currently only `CC-BY-4.0` is on AgriConnect's allowlist |
+
+Source of truth for Natural Regions licences: **open** until a ministry map with written permission
+or a licensed polygon exists.
