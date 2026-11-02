@@ -163,6 +163,8 @@ def test_loader_refuses_to_write_without_the_owner_or_a_uri(tmp_path):
     r = run_loader(tmp_path, "--apply")
     assert r.returncode == 2 and "--approved-by" in r.stderr
     r = run_loader(tmp_path, "--apply", "--approved-by", "Owner")
+    assert r.returncode == 2 and "--database" in r.stderr
+    r = run_loader(tmp_path, "--apply", "--approved-by", "Owner", "--database", "d", "--collection", "c")
     assert r.returncode == 2 and "AGRICONNECT_MONGO_URI" in r.stderr
 
 
@@ -227,7 +229,7 @@ def test_apply_path_writes_only_the_collection_and_stores_no_approver(tmp_path, 
 
         def __getitem__(self, db):
             calls["db"] = db
-            return {"naturalRegions": Col()}
+            return {"c": Col()}
 
     class ReplaceOne:
         def __init__(self, flt, doc, upsert=False):
@@ -242,7 +244,7 @@ def test_apply_path_writes_only_the_collection_and_stores_no_approver(tmp_path, 
     g, c = tmp_path / "g.json", tmp_path / "c.json"
     g.write_text(json.dumps(good()))
     c.write_text(json.dumps(COUNTRY))
-    assert mod.main(["--geojson", str(g), "--country", str(c), "--apply", "--approved-by", "Owner"]) == 0
-    assert calls["db"] == "agriculture" and calls["index"] == ([("geometry", "2dsphere")], "geometry_2dsphere")
+    assert mod.main(["--geojson", str(g), "--country", str(c), "--database", "d", "--collection", "c", "--apply", "--approved-by", "Owner"]) == 0
+    assert calls["db"] == "d" and calls["index"] == ([("geometry", "2dsphere")], "geometry_2dsphere")
     assert len(calls["ops"]) == 3
     assert all(op.upsert and "approvedBy" not in op.doc for op in calls["ops"])

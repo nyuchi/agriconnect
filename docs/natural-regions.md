@@ -1,6 +1,6 @@
 # Natural Regions as reference geography
 
-Refs #2. Status: **design plus tested loader. No real polygon is loaded, because no source with a
+Refs #2. See also `docs/adr-places-contract.md`: the home of this data is proposed to be the places domain, not agriculture. Status: **design plus tested loader. No real polygon is loaded, because no source with a
 confirmed redistribution licence has been found.** Nothing here writes to production.
 
 ## Why it matters
@@ -65,7 +65,7 @@ feature carries:
 | `source`, `licence`, `attribution` | where it came from, under what terms, whom to credit        |
 | `retrievedAt`      | date retrieved                                                               |
 
-Stored in `agriculture.naturalRegions` (one document per feature, `_id` =
+Proposed home: the places domain (see the ADR); the layout below is the same wherever it lives. One document per feature, `_id` =
 `zw-nr-<classification>-<vintage>-<code>`), with a `2dsphere` index on `geometry`. `agriculture` is a data-infra domain (2026-10-28).
 
 ## Loader and verification
@@ -93,9 +93,9 @@ Country boundary for the coverage check: the Zimbabwe country document in `place
 pip install -e '.[geo]'
 python scripts/load_natural_regions.py --geojson natural-regions.geojson --country zimbabwe-boundary.geojson
 # read the verify report; if "ok": true, then:
-AGRICONNECT_MONGO_URI='<write-capable agriculture URI>' python scripts/load_natural_regions.py \
+AGRICONNECT_MONGO_URI='<write-capable URI for the chosen database>' python scripts/load_natural_regions.py \
   --geojson natural-regions.geojson --country zimbabwe-boundary.geojson \
-  --apply --approved-by "Bryan Fawcett"
+  --database <db> --collection <collection> --apply --approved-by "Bryan Fawcett"
 ```
 
 Not run. The Data MCP is read-only by design; this write is a separate, owner-held step.
