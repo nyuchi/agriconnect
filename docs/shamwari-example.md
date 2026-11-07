@@ -12,12 +12,12 @@ Refs #2. Values below were read from the live databases on 2026-11-01. Every sta
 `places.placeKnowledge` has a Gweru entry (id `019f07ed-b519-70c4-8324-2d24aa650531`) at
 longitude 29.82003, latitude -19.45004 **[observed]**.
 
-| Answer | Value | Marking |
-| --- | --- | --- |
-| Province | Midlands, `ZW-MI`, P-code `ZW17` (the entry's calendar reference region is "Midlands") | [observed], join per `docs/place-to-region.md` |
-| Natural Region, 1960 | **not available**: no polygon is loaded | [unverified] |
-| Natural Region, 2020 | **not available** | [unverified] |
-| District | **not available**: no district boundaries held | [unverified] |
+| Answer               | Value                                                                                  | Marking                                        |
+| -------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Province             | Midlands, `ZW-MI`, P-code `ZW17` (the entry's calendar reference region is "Midlands") | [observed], join per `docs/place-to-region.md` |
+| Natural Region, 1960 | **not available**: no polygon is loaded                                                | [unverified]                                   |
+| Natural Region, 2020 | **not available**                                                                      | [unverified]                                   |
+| District             | **not available**: no district boundaries held                                         | [unverified]                                   |
 
 Shamwari must say so rather than guess "Region 3". The stored rainfall (below) is a hint, not a
 classification.
@@ -27,12 +27,12 @@ classification.
 From `placeKnowledge.agriculture.crops` for Gweru, source GEOGLAM Crop Monitor Sub-National Crop
 Calendars (CM4EW) v1.3, CC-BY-4.0, doi:10.5281/zenodo.15850408 (Becker-Reshef, Barker et al.):
 
-| Maize stage | Day of year stored | Calendar date (non-leap year) | Marking |
-| --- | --- | --- | --- |
-| planting | 320 | 16 November | [observed], then converted by hand [derived] |
-| vegetative | 350 | 16 December | same |
-| harvest | 60 | 1 March | same |
-| end of season | 152 | 1 June | same |
+| Maize stage   | Day of year stored | Calendar date (non-leap year) | Marking                                      |
+| ------------- | ------------------ | ----------------------------- | -------------------------------------------- |
+| planting      | 320                | 16 November                   | [observed], then converted by hand [derived] |
+| vegetative    | 350                | 16 December                   | same                                         |
+| harvest       | 60                 | 1 March                       | same                                         |
+| end of season | 152                | 1 June                        | same                                         |
 
 The values are the regional (Midlands) calendar, not specific to Gweru's soils or Natural Region.
 How GEOGLAM defines each stage boundary was not read here; Shamwari should not describe the

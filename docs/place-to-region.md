@@ -7,12 +7,24 @@ with its source and licence, and `null` plus a reason when unknown:
 
 ```json
 {
-  "point": {"type": "Point", "coordinates": [29.8, -19.45]},
+  "point": { "type": "Point", "coordinates": [29.8, -19.45] },
   "naturalRegions": [
-    {"code": "...", "classification": "vincent-thomas-1960", "vintage": 1960, "source": "...", "licence": "..."},
-    {"code": "...", "classification": "agez-revision-2020", "vintage": 2020, "source": "...", "licence": "..."}
+    {
+      "code": "...",
+      "classification": "vincent-thomas-1960",
+      "vintage": 1960,
+      "source": "...",
+      "licence": "..."
+    },
+    {
+      "code": "...",
+      "classification": "agez-revision-2020",
+      "vintage": 2020,
+      "source": "...",
+      "licence": "..."
+    }
   ],
-  "province": {"isoCode": "ZW-MI", "pcode": "ZW17", "name": "Midlands"},
+  "province": { "isoCode": "ZW-MI", "pcode": "ZW17", "name": "Midlands" },
   "district": null,
   "districtNote": "districts are not resolved: no district boundaries are held ..."
 }
@@ -25,13 +37,13 @@ Both classifications come back side by side, never merged.
 `places.placesGeo` provinces carry an ISO 3166-2 `isoCode`; `agriculture.adminAreas` (level 1, OCHA
 COD-AB, licence CC-BY-IGO) carries P-codes. They match by name, one to one:
 
-| ISO 3166-2 | P-code | Province           | ISO 3166-2 | P-code | Province           |
-| ---------- | ------ | ------------------ | ---------- | ------ | ------------------ |
-| ZW-BU      | ZW10   | Bulawayo           | ZW-MN      | ZW15   | Matabeleland North |
-| ZW-MA      | ZW11   | Manicaland         | ZW-MS      | ZW16   | Matabeleland South |
-| ZW-MC      | ZW12   | Mashonaland Central| ZW-MI      | ZW17   | Midlands           |
-| ZW-ME      | ZW13   | Mashonaland East   | ZW-MV      | ZW18   | Masvingo           |
-| ZW-MW      | ZW14   | Mashonaland West   | ZW-HA      | ZW19   | Harare             |
+| ISO 3166-2 | P-code | Province            | ISO 3166-2 | P-code | Province           |
+| ---------- | ------ | ------------------- | ---------- | ------ | ------------------ |
+| ZW-BU      | ZW10   | Bulawayo            | ZW-MN      | ZW15   | Matabeleland North |
+| ZW-MA      | ZW11   | Manicaland          | ZW-MS      | ZW16   | Matabeleland South |
+| ZW-MC      | ZW12   | Mashonaland Central | ZW-MI      | ZW17   | Midlands           |
+| ZW-ME      | ZW13   | Mashonaland East    | ZW-MV      | ZW18   | Masvingo           |
+| ZW-MW      | ZW14   | Mashonaland West    | ZW-HA      | ZW19   | Harare             |
 
 ## Districts: not resolvable yet
 

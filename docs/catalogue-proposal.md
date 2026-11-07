@@ -5,15 +5,15 @@ from `agriculture.datasets` and the collections read on 2026-11-01.
 
 ## What blocks each candidate
 
-| Candidate | Licence in `agriculture.datasets` | On the allowlist (`CC-BY-4.0` only)? | Status | Blocker |
-| --- | --- | --- | --- | --- |
-| Admin areas (OCHA COD-AB) | CC-BY-IGO | **No** | loaded in Mongo | Allowlist change (policy) or serve outside AgriConnect |
-| Natural Regions | not yet known | No | no polygons | Source and licence (see `natural-regions.md`) |
-| Rainfall by province (WFP/CHIRPS) | CC-BY-4.0 | Yes | partially loaded (10 provinces, from 2025-10) | Doris copy; approver; k rule |
-| FAOSTAT crop production | CC-BY-4.0 | Yes | partially loaded (12 observations) | Doris copy; approver; k rule |
-| WFP food prices (27,872 rows) | CC-BY-IGO | **No** | queued for loader | Allowlist change; licence read |
-| FEWS NET classification | CC-BY-4.0 | Yes | catalogue only | Loader |
-| Three FAOSTAT datasets | `null` | No | catalogue only | Licence unknown, so not open |
+| Candidate                         | Licence in `agriculture.datasets` | On the allowlist (`CC-BY-4.0` only)? | Status                                        | Blocker                                                |
+| --------------------------------- | --------------------------------- | ------------------------------------ | --------------------------------------------- | ------------------------------------------------------ |
+| Admin areas (OCHA COD-AB)         | CC-BY-IGO                         | **No**                               | loaded in Mongo                               | Allowlist change (policy) or serve outside AgriConnect |
+| Natural Regions                   | not yet known                     | No                                   | no polygons                                   | Source and licence (see `natural-regions.md`)          |
+| Rainfall by province (WFP/CHIRPS) | CC-BY-4.0                         | Yes                                  | partially loaded (10 provinces, from 2025-10) | Doris copy; approver; k rule                           |
+| FAOSTAT crop production           | CC-BY-4.0                         | Yes                                  | partially loaded (12 observations)            | Doris copy; approver; k rule                           |
+| WFP food prices (27,872 rows)     | CC-BY-IGO                         | **No**                               | queued for loader                             | Allowlist change; licence read                         |
+| FEWS NET classification           | CC-BY-4.0                         | Yes                                  | catalogue only                                | Loader                                                 |
+| Three FAOSTAT datasets            | `null`                            | No                                   | catalogue only                                | Licence unknown, so not open                           |
 
 Two structural points the owner should decide, not me:
 

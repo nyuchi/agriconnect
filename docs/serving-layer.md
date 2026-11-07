@@ -5,14 +5,14 @@ either choice.
 
 ## The two candidates
 
-| | AgriConnect (this repo) | Servers API read routes (`nyuchi-servers-api`) |
-| --- | --- | --- |
-| Best for | Open, aggregated datasets for people and partners; feeds the `/v1/open-data` commons (DCAT v3, CSVW, CC BY 4.0) | Lookups Shamwari and Core call mid-conversation: place to region, calendar, rainfall |
-| Data path | Reads Doris read-only, k >= 10 rule, CC-BY-4.0 allowlist | Reads Mongo/Doris as the one internal gateway; "only Nyuchi API and Servers API may touch databases, and Core goes through them" |
-| Fit for reference geography | Poor: the rule is about aggregates of records, and Natural Regions are not records | Good: a point lookup with source and licence |
-| Fit for open aggregates | Good: that is its purpose | Duplicates the commons if it also publishes them |
-| Exposure | No public address, one bearer token | Internal, no public IP |
-| Cost to build now | Exists as scaffold (PR #1) | Route contract only (draft below); service not built here |
+|                             | AgriConnect (this repo)                                                                                         | Servers API read routes (`nyuchi-servers-api`)                                                                                   |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Best for                    | Open, aggregated datasets for people and partners; feeds the `/v1/open-data` commons (DCAT v3, CSVW, CC BY 4.0) | Lookups Shamwari and Core call mid-conversation: place to region, calendar, rainfall                                             |
+| Data path                   | Reads Doris read-only, k >= 10 rule, CC-BY-4.0 allowlist                                                        | Reads Mongo/Doris as the one internal gateway; "only Nyuchi API and Servers API may touch databases, and Core goes through them" |
+| Fit for reference geography | Poor: the rule is about aggregates of records, and Natural Regions are not records                              | Good: a point lookup with source and licence                                                                                     |
+| Fit for open aggregates     | Good: that is its purpose                                                                                       | Duplicates the commons if it also publishes them                                                                                 |
+| Exposure                    | No public address, one bearer token                                                                             | Internal, no public IP                                                                                                           |
+| Cost to build now           | Exists as scaffold (PR #1)                                                                                      | Route contract only (draft below); service not built here                                                                        |
 
 ## Recommendation
 
