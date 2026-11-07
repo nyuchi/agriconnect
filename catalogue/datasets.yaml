@@ -1,0 +1,30 @@
+# The catalogue of datasets AgriConnect may serve. Nothing is served until it is
+# open, approved by a named person, enabled, and on the licence allowlist
+# (src/agriconnect/policy.py). The first real entries wait on the owner naming
+# which Nyuchi datasets count as agricultural and open.
+#
+# `domain` is a domain in nyuchi/data-infra schemas/domains.yaml. AgriConnect
+# reads a domain's Doris database with a read-only login and never writes.
+#
+# column kinds: dimension, measure (served); identifier, personal (never served).
+
+datasets:
+  # An example, switched off. It shows the shape and is checked by the tests.
+  # Names follow the standards register in nyuchi/data-infra: CF standard names for
+  # measures, ISO 3166-2 for regions, ISO 8601 dates, WIGOS station ids. The real
+  # weather table does not exist yet: weather is not modelled (data-infra#90).
+  - id: example-rainfall
+    title: Example, daily rainfall by region
+    domain: weather
+    database: weather
+    table: example_daily_summary
+    licence: CC-BY-4.0
+    open: true
+    enabled: false
+    approved_by: null
+    min_cell_size: 10
+    columns:
+      - {name: region_code, kind: dimension}  # ISO 3166-2, for example ZW-HA
+      - {name: observed_date, kind: dimension}  # ISO 8601 date, in the place's zone
+      - {name: precipitation_amount, kind: measure}  # CF standard name, unit kg m-2
+      - {name: wigos_station_id, kind: identifier}  # never served
