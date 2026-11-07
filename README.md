@@ -46,6 +46,14 @@ tested in `tests/`):
 Each of these is a control with a test that fails if it is broken, not a note in
 the catalogue.
 
+## Agriculture domain (phase 1)
+
+Tracking issue: #2. Natural Regions reference geography, place-to-region lookup, the serving-layer
+recommendation, a draft Servers API contract, a catalogue proposal and a Gweru example are in
+`docs/` (`natural-regions.md`, `place-to-region.md`, `serving-layer.md`,
+`servers-api-contract.md`, `catalogue-proposal.md`, `shamwari-example.md`). Nothing is loaded,
+enabled or deployed.
+
 ## Layout
 
 - `catalogue/datasets.yaml`: the datasets that may be served. One example,
@@ -53,6 +61,8 @@ the catalogue.
 - `src/agriconnect/policy.py`: the rule above.
 - `src/agriconnect/source.py`: one aggregate query, and the read-only Doris
   reader.
+- `src/agriconnect/regions.py`, `places_join.py`: Natural Regions model, checks, point lookup and
+  the province P-code join. `scripts/load_natural_regions.py`: dry-run-by-default loader.
 - `src/agriconnect/app.py`: the API: `/health`, `/v1/datasets`,
   `/v1/datasets/{id}/series`.
 - `Dockerfile`, `fly.toml`: the Fly app `nyuchi-agriconnect`, region `jnb`, no
