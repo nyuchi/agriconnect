@@ -1,0 +1,28 @@
+# nyuchi-agriconnect. NOT CREATED. Creating it, its secrets and its Doris login
+# are owner steps (see README). There is deliberately no [http_service]: like the
+# apps in nyuchi/data-infra it has no public address and is reached only from
+# other Fly apps over 6PN, at nyuchi-agriconnect.internal:8080.
+#
+# Secrets (fly secrets set --app nyuchi-agriconnect, never in this repo):
+#   AGRICONNECT_TOKEN, DORIS_HOST, DORIS_USER, DORIS_PASSWORD
+app = "nyuchi-agriconnect"
+primary_region = "jnb"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DORIS_PORT = "9030"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[checks]
+  [checks.health]
+    type = "http"
+    port = 8080
+    path = "/health"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
